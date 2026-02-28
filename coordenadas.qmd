@@ -1,0 +1,107 @@
+---
+title: "Ejercicios Programación Orientada a Objetos"
+author: "Lina María Quintero Fonseca"
+date: today
+format: html
+jupyter: python3
+---
+
+## Ejercicio 1: Bounding Box
+
+A continuación, definimos una función pura para calcular la caja delimitadora de un conjunto de coordenadas, asegurando que no se modifique la lista original.
+
+```{python}
+def calcular_bbox(coordenadas):
+    """Calcula el BBox de una lista de coordenadas (lat, lon)."""
+    if not coordenadas: 
+        return None
+        
+    lat_min, lon_min = coordenadas[0]
+    lat_max, lon_max = coordenadas[0]
+    
+    for lat, lon in coordenadas:
+        if lat < lat_min: lat_min = lat
+        if lat > lat_max: lat_max = lat
+        if lon < lon_min: lon_min = lon
+        if lon > lon_max: lon_max = lon
+        
+    return lat_min, lat_max, lon_min, lon_max
+
+# Prueba del algoritmo
+puntos = [(4.60, -74.08), (4.65, -74.05)]
+print("BBox calculado:", calcular_bbox(puntos))
+```
+
+
+
+
+## Ejercicio 2: Interacción de Objetos Espaciales
+
+Aquí implementamos la clase base `PuntoEspacial` y una estructura superior `RutaGeografica` que almacena y coordina los puntos para calcular trayectorias.
+
+```{python}
+import math
+
+class PuntoEspacial:
+    def __init__(self, nombre, latitud, longitud):
+        self.nombre = nombre
+        self.latitud = latitud
+        self.longitud = longitud
+
+    def distancia_hacia(self, otro_punto):
+        d_lat = self.latitud - otro_punto.latitud
+        d_lon = self.longitud - otro_punto.longitud
+        return math.sqrt(d_lat**2 + d_lon**2)
+
+class RutaGeografica:
+    def __init__(self, nombre):
+        self.nombre = nombre
+        self.puntos = []
+
+    def agregar_punto(self, punto):
+        self.puntos.append(punto)
+
+    def medir_distancia_total(self):
+        if len(self.puntos) < 2: 
+            return 0.0
+            
+        total = 0.0
+        for i in range(len(self.puntos) - 1):
+            total += self.puntos[i].distancia_hacia(self.puntos[i + 1])
+        return total
+
+# Prueba de las clases
+mi_ruta = RutaGeografica("Ruta de Evaluación")
+mi_ruta.agregar_punto(PuntoEspacial("Inicio", 4.60, -74.08))
+mi_ruta.agregar_punto(PuntoEspacial("Fin", 4.65, -74.05))
+
+print(f"Distancia total del recorrido: {mi_ruta.medir_distancia_total():.4f}")
+
+```
+
+
+### Sobre el Ejercicio 1 (Regla DRY y Pureza)
+**¿Qué es la regla DRY?**
+El principio DRY (*Don't Repeat Yourself*) dicta que cada pieza de lógica en un sistema debe tener una única representación autoritativa. En lugar de duplicar código, se debe abstraer en funciones.
+
+**Riesgo de no usar funciones puras:**
+La fórmula de Haversine es matemáticamente compleja:
+$$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\phi_2 - \phi_1}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\lambda_2 - \lambda_1}{2}\right)}\right)$$
+
+Si copiamos y pegamos este bloque en múltiples scripts (por ejemplo, al modelar la hidrodinámica o calcular distancias de sensores en un Gemelo Digital de la Ciénaga Grande de Santa Marta) y descubrimos un error de precisión, tendríamos que buscar y corregir manualmente cada copia. Al usar una función pura como `calcular_bbox` o una de distancia, creamos una "única fuente de la verdad". Si se requiere un ajuste en el modelo, se hace en un solo lugar, garantizando la mantenibilidad y consistencia en todo el proyecto.
+
+### Sobre el Ejercicio 2 (Paradigmas de POO)
+
+
+Si analizamos dónde "viven" físicamente los métodos, encontramos dos filosofías contrastantes:
+
+* **Python (El enfoque del "Molde"):** Sigue la POO clásica. La clase `RutaGeografica` es el molde de fábrica, y el método `medir_distancia_total()` vive físicamente dentro de la definición de esa clase. Al instanciar un objeto, este nace con el método integrado en su estructura interna (ej. `mi_ruta.medir_distancia_total()`).
+* **Sistema S3 de R (El enfoque del "Post-it"):** Es un enfoque funcional. Los objetos son estructuras de datos básicas (como listas) que tienen una etiqueta o "Post-it" indicando su clase. Los métodos no viven dentro del objeto, sino que son *Funciones Genéricas* globales. Al llamar a `medir_distancia_total(mi_ruta)`, el motor de R lee la etiqueta del objeto y despacha la función específica asociada a esa clase.
+
+### Pregunta General (Eficiencia y Motores)
+Al procesar levantamientos masivos de 5 millones de puntos GPS (un escenario típico al procesar linderos o restitución masiva para entidades como la Agencia Nacional de Tierras), el rendimiento del lenguaje es crítico. Julia superaría al intérprete estándar de R gracias a la combinación de dos características:
+
+1.  **Compilación JIT (Just-In-Time):** Julia no interpreta el código línea por línea. Compila la función al vuelo a código de máquina (usando LLVM) justo antes de ejecutarla. Al procesar un ciclo de 5 millones de iteraciones, ejecuta las instrucciones directamente a nivel del procesador de forma ultrarrápida.
+
+2.  **Despacho Múltiple (Multiple Dispatch):** Durante la compilación, Julia analiza los tipos de *todos* los argumentos (ej. que las coordenadas son `Float64`) y genera una versión altamente especializada y matemáticamente optimizada de la función para esos tipos exactos, eliminando la sobrecarga de verificar tipos en cada una de las 5 millones de repeticiones.
+
