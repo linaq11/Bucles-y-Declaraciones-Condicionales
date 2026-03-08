@@ -1,0 +1,279 @@
+---
+title: "Capítulo 8 – Bucles y Declaraciones Condicionales"
+subtitle: "Ejercicios en Python y R"
+author: "Lina María Quintero Fonseca"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    code-fold: false
+    highlight-style: github
+  pdf:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    geometry: margin=2.5cm
+    fontsize: 11pt
+lang: es
+---
+
+# Ejercicio 1: Clasificación iterativa (ciclo `for` e `if-else`)
+
+## Contexto
+
+Se trabaja en un proyecto de zonificación agrícola en el **Eje Cafetero**. El café de especialidad requiere altitudes entre **1700 y 2200 msnm**. El objetivo es clasificar automáticamente una lista de fincas según su altitud.
+
+---
+
+## Solución en Python
+
+```{python}
+# ─────────────────────────────────────────────
+# EJERCICIO 1 – Python
+# Clasificación iterativa de fincas cafeteras
+# ─────────────────────────────────────────────
+
+# 1. Colección de altitudes
+altitudes_fincas = [1350, 1750, 1900, 2300, 1600, 2100]
+
+# 2. Contadores inicializados en cero
+conteo_especial    = 0
+conteo_tradicional = 0
+
+# 3. Colecciones vacías
+fincas_especiales    = []
+fincas_tradicionales = []
+
+# 4 y 5. Ciclo for con condicional if-else
+for altitud in altitudes_fincas:
+    if altitud >= 1700 and altitud <= 2200:   # AND lógico: rango de especialidad
+        fincas_especiales.append(altitud)
+        conteo_especial += 1
+    else:
+        fincas_tradicionales.append(altitud)
+        conteo_tradicional += 1
+
+# 6. Reporte final
+print("=" * 45)
+print("     REPORTE DE CLASIFICACIÓN DE FINCAS")
+print("=" * 45)
+print(f"\nFincas aptas para CAFÉ DE ESPECIALIDAD (1700–2200 msnm):")
+print(f"  Altitudes : {fincas_especiales}")
+print(f"  Total     : {conteo_especial} finca(s)\n")
+print(f"Fincas para CAFÉ TRADICIONAL (fuera del rango):")
+print(f"  Altitudes : {fincas_tradicionales}")
+print(f"  Total     : {conteo_tradicional} finca(s)")
+print("=" * 45)
+```
+
+---
+
+## Solución en R
+
+```{r}
+# ─────────────────────────────────────────────
+# EJERCICIO 1 – R
+# Clasificación iterativa de fincas cafeteras
+# ─────────────────────────────────────────────
+
+# 1. Vector de altitudes
+altitudes_fincas <- c(1350, 1750, 1900, 2300, 1600, 2100)
+
+# 2. Contadores inicializados en cero
+conteo_especial    <- 0
+conteo_tradicional <- 0
+
+# 3. Vectores vacíos
+fincas_especiales    <- c()
+fincas_tradicionales <- c()
+
+# 4 y 5. Ciclo for con condicional if-else
+for (altitud in altitudes_fincas) {
+  if (altitud >= 1700 && altitud <= 2200) {   # && escalar: una sola evaluación por vuelta
+    fincas_especiales    <- c(fincas_especiales, altitud)
+    conteo_especial      <- conteo_especial + 1
+  } else {
+    fincas_tradicionales <- c(fincas_tradicionales, altitud)
+    conteo_tradicional   <- conteo_tradicional + 1
+  }
+}
+
+# 6. Reporte final
+cat(strrep("=", 45), "\n")
+cat("     REPORTE DE CLASIFICACIÓN DE FINCAS\n")
+cat(strrep("=", 45), "\n\n")
+cat("Fincas aptas para CAFÉ DE ESPECIALIDAD (1700–2200 msnm):\n")
+cat("  Altitudes :", fincas_especiales, "\n")
+cat("  Total     :", conteo_especial, "finca(s)\n\n")
+cat("Fincas para CAFÉ TRADICIONAL (fuera del rango):\n")
+cat("  Altitudes :", fincas_tradicionales, "\n")
+cat("  Total     :", conteo_tradicional, "finca(s)\n")
+cat(strrep("=", 45), "\n")
+```
+
+---
+
+## Análisis: Indentación y bloques en Python vs R/Julia
+
+En **Python**, se determina la pertenencia de cada instrucción a una estructura de control —`for`, `if`, bloque final— exclusivamente mediante la **indentación** (sangría de 4 espacios o un tabulador). No existen llaves ni palabras clave de cierre. Esto implica que:
+
+- Las instrucciones indentadas bajo el `for:` pertenecen al ciclo y se ejecutan en cada iteración.
+- Las instrucciones indentadas bajo el `if:` o el `else:` pertenecen a esa condición y se ejecutan solo si se cumple (o no) la condición.
+- Las instrucciones al nivel de indentación original (sin sangría) pertenecen al programa principal y se ejecutan una sola vez, **después** de que el ciclo termina por completo.
+
+Si se olvida la sangría o se mezclan espacios con tabuladores, Python lanza un `IndentationError` de forma inmediata.
+
+En **R**, en cambio, los bloques se delimitan con **llaves `{}`**: todo lo que esté entre `{` y `}` pertenece al ciclo o a la condición. En **Julia**, se usa la palabra clave `end` para cerrar explícitamente cada bloque. Ambos enfoques son más tolerantes con el espaciado, ya que el computador se guía por los delimitadores, no por la posición visual del código.
+
+---
+
+# Ejercicio 2: Monitoreo de sensores (ciclo `while` y control de flujo)
+
+## Contexto
+
+El **IDEAM** encarga programar una estación hidrológica en el **Río Magdalena**. El sensor toma lecturas del nivel del agua y dispara una alerta si supera los **8.5 metros**, deteniendo las mediciones para proteger el equipo.
+
+---
+
+## Solución en Python
+
+```{python}
+# ─────────────────────────────────────────────
+# EJERCICIO 2 – Python
+# Simulador de estación hidrológica – Río Magdalena
+# ─────────────────────────────────────────────
+
+import random
+random.seed(42)   # Semilla fija: resultados reproducibles
+
+# 1. Variables de configuración
+nivel_alerta      = 8.5
+max_lecturas      = 12
+lectura_actual    = 0
+alerta_inundacion = False   # Bandera lógica inicializada en Falso
+
+print("=" * 50)
+print("   ESTACIÓN HIDROLÓGICA – RÍO MAGDALENA")
+print("=" * 50)
+
+# 2. Ciclo while: se repite mientras no se alcance el máximo de lecturas
+while lectura_actual < max_lecturas:
+
+    # 3. Simular medición: número aleatorio entre 5.0 y 9.0
+    nivel_medido = random.uniform(5.0, 9.0)
+
+    # 4. Incrementar contador e imprimir lectura
+    lectura_actual += 1
+    print(f"  Lectura {lectura_actual:>2}: nivel = {nivel_medido:.2f} m")
+
+    # 5. Condicional de alerta
+    if nivel_medido >= nivel_alerta:
+        alerta_inundacion = True
+        print("\n  ⚠  ¡ALERTA ROJA! Posible desbordamiento.")
+        break   # Detener el ciclo inmediatamente
+
+# 6. Evaluación de la bandera al salir del ciclo
+print()
+if not alerta_inundacion:
+    print("✔  Monitoreo finalizado. Niveles estables.")
+else:
+    print(f"✘  Monitoreo interrumpido en la lectura {lectura_actual}.")
+
+print("=" * 50)
+```
+
+---
+
+## Solución en R
+
+```{r}
+# ─────────────────────────────────────────────
+# EJERCICIO 2 – R
+# Simulador de estación hidrológica – Río Magdalena
+# ─────────────────────────────────────────────
+
+set.seed(42)   # Semilla fija: resultados reproducibles
+
+# 1. Variables de configuración
+nivel_alerta      <- 8.5
+max_lecturas      <- 12
+lectura_actual    <- 0
+alerta_inundacion <- FALSE   # Bandera lógica inicializada en FALSE
+
+cat(strrep("=", 50), "\n")
+cat("   ESTACIÓN HIDROLÓGICA – RÍO MAGDALENA\n")
+cat(strrep("=", 50), "\n")
+
+# 2. Ciclo while: se repite mientras no se alcance el máximo de lecturas
+while (lectura_actual < max_lecturas) {
+
+  # 3. Simular medición: número aleatorio entre 5.0 y 9.0
+  nivel_medido <- runif(1, min = 5.0, max = 9.0)
+
+  # 4. Incrementar contador e imprimir lectura
+  lectura_actual <- lectura_actual + 1
+  cat(sprintf("  Lectura %2d: nivel = %.2f m\n", lectura_actual, nivel_medido))
+
+  # 5. Condicional de alerta
+  if (nivel_medido >= nivel_alerta) {
+    alerta_inundacion <- TRUE
+    cat("\n  ⚠  ¡ALERTA ROJA! Posible desbordamiento.\n")
+    break   # Detener el ciclo inmediatamente
+  }
+}
+
+# 6. Evaluación de la bandera al salir del ciclo
+cat("\n")
+if (!alerta_inundacion) {
+  cat("✔  Monitoreo finalizado. Niveles estables.\n")
+} else {
+  cat(sprintf("✘  Monitoreo interrumpido en la lectura %d.\n", lectura_actual))
+}
+cat(strrep("=", 50), "\n")
+```
+
+---
+
+## Análisis: El peligro del ciclo infinito con `while`
+
+Si se **olvida la instrucción `lectura_actual += 1`** (Python) o `lectura_actual <- lectura_actual + 1` (R) dentro del bloque `while`, la variable nunca cambia de valor. La condición `lectura_actual < max_lecturas` seguirá siendo verdadera para siempre, de modo que el ciclo se repetirá de forma indefinida. El programa consumirá CPU y memoria de manera continua hasta que el sistema operativo lo fuerce a detenerse o el usuario lo interrumpa manualmente (Ctrl+C).
+
+Este riesgo **no existe en un ciclo `for`** porque el propio lenguaje gestiona el avance del iterador. En Python, `for altitud in altitudes_fincas:` extrae automáticamente el siguiente elemento en cada vuelta y sabe cuándo se acabaron los elementos. En R, `for (altitud in altitudes_fincas)` hace exactamente lo mismo: el contador interno avanza sin que el programador deba recordarlo.
+
+En resumen: el `for` es seguro por diseño porque el número de iteraciones está determinado de antemano por la longitud de la colección. El `while` delega esa responsabilidad al programador, quien debe asegurarse de modificar la condición de parada en cada vuelta.
+
+---
+
+## Análisis: Operador doble `&&` vs operador simple `&` en R y Julia
+
+En R (y de forma análoga en Julia con `.&`), existen **dos familias de operadores lógicos** con propósitos distintos:
+
+**Operador doble `&&` (escalar — "el portero"):** Está diseñado para evaluar **una sola condición** con valores escalares, es decir, un único número o lógico. Es el operador correcto dentro de un `if (condicion)`, porque un `if` espera exactamente un valor `TRUE` o `FALSE`. Cuando se le pasa un **vector** (por ejemplo, un vector de 6 altitudes), el operador `&&` no sabe cómo manejar tantos valores a la vez: genera un error (`'length = 6' in coercion to 'logical(1)'`) o en versiones anteriores de R devuelve solo el primer elemento con una advertencia, produciendo resultados incorrectos.
+
+**Operador simple `&` (vectorizado — "el colador"):** Está diseñado precisamente para trabajar con vectores completos. Evalúa la condición **elemento por elemento** y devuelve un vector lógico del mismo tamaño, indicando qué posiciones cumplen la condición (`TRUE`) y cuáles no (`FALSE`). Ese vector lógico se usa luego para filtrar el vector original:
+
+```r
+# Correcto para filtrar un vector completo de altitudes
+altitudes <- c(1350, 1750, 1900, 2300, 1600, 2100)
+filtro    <- altitudes >= 1700 & altitudes <= 2200   # operador simple &
+aptas     <- altitudes[filtro]
+cat("Aptas:", aptas)   # 1750 1900 2100
+```
+
+Usar `&&` en ese mismo contexto colapsaría el programa. La regla práctica es: **`&&` para decisiones (`if`), `&` para filtros sobre vectores**.
+
+---
+
+# Conclusión
+
+A lo largo de estos dos ejercicios se pusieron en práctica los tres pilares del control de flujo en programación espacial:
+
+1. El ciclo `for` para recorrer colecciones de tamaño conocido con clasificación condicional.
+2. El ciclo `while` para procesos dirigidos por eventos con control de seguridad mediante `break` y bandera lógica.
+3. Los operadores lógicos correctos según el contexto: escalares (`and` / `&&`) para decisiones únicas, y vectorizados (`&` / `.&`) para filtros masivos.
+
+La implementación paralela en **Python** y **R** permite apreciar las diferencias estructurales de cada lenguaje —indentación vs llaves, base 0 vs base 1, `random.uniform` vs `runif`— manteniendo la misma lógica algorítmica subyacente.
+
+
